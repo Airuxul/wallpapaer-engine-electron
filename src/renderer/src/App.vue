@@ -2,8 +2,28 @@
   <div class="common-layout">
     <el-container>
       <el-header>
-        <el-date-picker v-model="searchFromDate" type="date" :clearable="false" />
-        <el-button @click="getWallpaperDatas">getWallpaperDatas</el-button>
+        <el-row :gutter="60">
+          <el-col :span="12">
+            <el-input
+              v-model="searchRootPath"
+              placeholder="Please Select"
+              style="width: 500px"
+              :readonly="true"
+            >
+              <template #append>
+                <el-icon style="cursor: pointer" @click="openDialog">
+                  <FolderOpened />
+                </el-icon>
+              </template>
+            </el-input>
+          </el-col>
+          <el-col :span="6">
+            <el-date-picker v-model="searchFromDate" type="date" :clearable="false" />
+          </el-col>
+          <el-col :span="6">
+            <el-button @click="getWallpaperDatas">获取壁纸信息</el-button>
+          </el-col>
+        </el-row>
       </el-header>
       <el-main>
         <el-table
@@ -23,12 +43,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { FolderOpened } from '@element-plus/icons-vue'
 import { ElTable } from 'element-plus'
 import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
 
 // search
-const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
+const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
 const searchExtensions = ref(['.json'])
 
 // data
@@ -37,6 +58,10 @@ const multipleSelection = ref<WallpaperData[]>([])
 const refWallpaperDatas = ref<WallpaperData[]>([])
 
 // function
+function openDialog() {
+  console.log('nihao')
+}
+
 function handleSelectionChange(datas: WallpaperData[]) {
   multipleSelection.value = datas
 }
