@@ -24,10 +24,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElTable } from 'element-plus'
-import { WallpaperData } from '../../common/types'
+import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
 
 // search
-const MILLISECONDS_IN_DAY = 86400000
 const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
 const searchExtensions = ref(['.json'])
@@ -35,7 +34,7 @@ const searchExtensions = ref(['.json'])
 // data
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 const multipleSelection = ref<WallpaperData[]>([])
-const refWallpaperDatas = ref<WallpaperData[]>([{ path: '/path/to/image1', title: 'Image 1' }])
+const refWallpaperDatas = ref<WallpaperData[]>([])
 
 // function
 function handleSelectionChange(datas: WallpaperData[]) {
