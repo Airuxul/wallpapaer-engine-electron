@@ -1,3 +1,6 @@
+export interface SteamApi {
+  setSteamLocation(): Promise<boolean>
+}
 export interface WallpaperApi {
   getWallpaperDatas(
     rootPath: string,
@@ -7,6 +10,7 @@ export interface WallpaperApi {
 }
 declare global {
   interface Window {
+    steamApi: SteamApi
     wallpaperApi: WallpaperApi
   }
 }

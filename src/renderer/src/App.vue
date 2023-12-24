@@ -3,9 +3,19 @@
     <el-container>
       <el-header>
         <el-row :gutter="60">
-          <el-col :span="12">
+          <el-col :span="9">
+            <el-button
+              :type="hasSteamRootSet ? 'primary' : 'danger'"
+              :icon="hasSteamRootSet ? CircleCheckFilled : WarningFilled"
+              round
+              @click="setSteamLocation"
+            >
+              {{ hasSteamRootSet ? 'steam位置已设置' : '请设置steam位置' }}
+            </el-button>
+          </el-col>
+          <el-col :span="3">
             <el-input
-              v-model="searchRootPath"
+              v-model="moveTargetPath"
               placeholder="Please Select"
               style="width: 500px"
               :readonly="true"
@@ -43,12 +53,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FolderOpened } from '@element-plus/icons-vue'
-import { ElTable } from 'element-plus'
+import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
+import { ElTable, ElMessage } from 'element-plus'
 import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
 
 // search
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
+const hasSteamRootSet = ref(false)
 const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
 const searchExtensions = ref(['.json'])
 
@@ -57,7 +68,17 @@ const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 const multipleSelection = ref<WallpaperData[]>([])
 const refWallpaperDatas = ref<WallpaperData[]>([])
 
+// movie
+const moveTargetPath = ref('E:\\new')
+
 // function
+async function setSteamLocation() {
+  console.log('hello ')
+  
+  const result = await window.steamApi.setSteamLocation()
+  console.log(result)
+}
+
 function openDialog() {
   console.log('nihao')
 }
@@ -75,8 +96,16 @@ async function getWallpaperDatas() {
     // 不然会报clone啥的错
     JSON.parse(JSON.stringify(searchExtensions.value))
   )
+  ElMessage({
+    showClose: true,
+    message: '获取 ' + wallpaperDatas.length + ' 个壁纸信息',
+    type: 'success'
+  })
   refWallpaperDatas.value = wallpaperDatas
 }
+// function moveWallpaper() {
+
+// }
 </script>
 
 <style lang="less">

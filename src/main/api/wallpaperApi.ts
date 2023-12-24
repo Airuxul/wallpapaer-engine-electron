@@ -18,9 +18,6 @@ export function getWallpaperDatas(
     }
     return false
   }
-  console.log(rootPath)
-  console.log(fromDate)
-  console.log(extensions)
   const filePaths = getFilePaths(rootPath, extensionFilter, modifyTimeFilter)
   const wallpaperDatas: WallpaperData[] = []
   for (const fpath of filePaths) {
