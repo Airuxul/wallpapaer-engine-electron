@@ -1,12 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { SteamEvents, WallpaperEvents } from '../common/ipcEvents'
+import { WallpaperEvents } from '../common/ipcEvents'
 import { WallpaperData } from '../common/types'
 
-const steamApi = {
-  getSteamGameDatas: (): Promise<boolean> => ipcRenderer.invoke(SteamEvents.SET_STEAM_LOCATION)
-}
-
 const wallpaperApi = {
+  hasSetSteamLocation: (): Promise<boolean> =>
+    ipcRenderer.invoke(WallpaperEvents.HAS_SET_STEAM_LOCATION),
+  setSteamLocation: (): Promise<boolean> => ipcRenderer.invoke(WallpaperEvents.SET_STEAM_LOCATION),
   getWallpaperDatas: (
     rootPath: string,
     fromDate: Date,
@@ -17,14 +16,11 @@ const wallpaperApi = {
 
 if (process.contextIsolated) {
   try {
-    contextBridge.exposeInMainWorld('steamApi', steamApi)
     contextBridge.exposeInMainWorld('wallpaperApi', wallpaperApi)
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.steamApi = steamApi
   // @ts-ignore (define in dts)
   window.wallpaperApi = wallpaperApi
 }
