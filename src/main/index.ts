@@ -1,7 +1,6 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import ElectronStore from 'electron-store'
 import icon from '../../resources/icon.png?asset'
 import { ipcRegister } from './ipcRegister'
 

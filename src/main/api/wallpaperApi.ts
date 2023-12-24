@@ -5,6 +5,7 @@ import { getDirPath, getFilePaths } from '../../common/utils'
 import {
   STEAM_WORKSHOP_DIR,
   WALLPAPER_ENGINE_APP_ID,
+  WALLPAPER_CONFIG,
   StoreKey,
   WallpaperData
 } from '../../common/types'
@@ -49,12 +50,12 @@ export async function setSteamLocation() {
   }
 }
 
-export function getWallpaperDatas(
+export async function getWallpaperDatas(
   _event,
   rootPath: string,
   fromDate: Date,
   extensions: string[]
-): WallpaperData[] {
+): Promise<WallpaperData[]> {
   function modifyTimeFilter(_fpath: string, stats: fs.Stats): boolean {
     return stats.mtime > fromDate
   }
@@ -67,8 +68,13 @@ export function getWallpaperDatas(
   }
   const filePaths = getFilePaths(rootPath, extensionFilter, modifyTimeFilter)
   const wallpaperDatas: WallpaperData[] = []
+
   for (const fpath of filePaths) {
-    wallpaperDatas.push({ path: fpath, title: 'defaultTitle' })
+    const folderPath = getDirPath(fpath)
+    const projectConfigStr = await fs.readFileSync(join(folderPath, WALLPAPER_CONFIG), 'utf-8')
+    console.log(projectConfigStr)
+    const projectConfig = JSON.parse(projectConfigStr)
+    wallpaperDatas.push({ path: fpath, title: projectConfig.title, preview: projectConfig.preview })
   }
   return wallpaperDatas
 }

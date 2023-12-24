@@ -2,8 +2,9 @@
   <div class="common-layout">
     <el-container>
       <el-header>
-        <el-row :gutter="60">
-          <el-col :span="9">
+        <!-- 第一行 -->
+        <el-row :gutter="20">
+          <el-col :span="5">
             <el-button
               :type="hasSteamRootSet ? 'primary' : 'danger'"
               :icon="hasSteamRootSet ? CircleCheckFilled : WarningFilled"
@@ -14,13 +15,8 @@
               {{ hasSteamRootSet ? 'steam.exe位置已设置' : '请设置steam.exe位置' }}
             </el-button>
           </el-col>
-          <el-col :span="3">
-            <el-input
-              v-model="moveTargetPath"
-              placeholder="Please Select"
-              style="width: 500px"
-              :readonly="true"
-            >
+          <el-col :span="6">
+            <el-input v-model="moveTargetPath" placeholder="Please Select" :readonly="true">
               <template #append>
                 <el-icon style="cursor: pointer" @click="openDialog">
                   <FolderOpened />
@@ -28,11 +24,24 @@
               </template>
             </el-input>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="5">
             <el-date-picker v-model="searchFromDate" type="date" :clearable="false" />
           </el-col>
-          <el-col :span="6">
-            <el-button @click="getWallpaperDatas">获取壁纸信息</el-button>
+          <el-col :span="5">
+            <el-select
+              v-model="searchSelected"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              :reserve-keyword="false"
+              placeholder="Choose tags for your article"
+            >
+              <el-option v-for="item in searchOptions" :key="item.value" :value="item.value" />
+            </el-select>
+          </el-col>
+          <el-col :span="3">
+            <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
           </el-col>
         </el-row>
       </el-header>
@@ -41,10 +50,18 @@
           ref="multipleTableRef"
           :data="refWallpaperDatas"
           class="dataTable"
+          :loading="isSearching"
           @selection-change="handleSelectionChange"
         >
-          <el-table-column prop="path" label="原文件地址"></el-table-column>
-          <el-table-column prop="title" label="新文件名"></el-table-column>
+          <el-table-column prop="path" label="本地路径"></el-table-column>
+          <el-table-column prop="title" label="标题"></el-table-column>
+          <el-table-column label="预览图">
+            <template #default="scope">
+              <div style="display: flex; align-items: center">
+                <el-image :preview-src-list="scope.row.preview" />
+              </div>
+            </template>
+          </el-table-column>
           <el-table-column type="selection" prop="selected"></el-table-column>
         </el-table>
       </el-main>
@@ -62,7 +79,14 @@ import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
 const hasSteamRootSet = ref(false)
 const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
-const searchExtensions = ref(['.json'])
+const searchSelected = ref<string[]>(['.mp4'])
+const searchOptions = [
+  {
+    value: '.mp4',
+    label: '.mp4'
+  }
+]
+const isSearching = ref(false)
 
 // data
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
@@ -95,24 +119,27 @@ function handleSelectionChange(datas: WallpaperData[]) {
   multipleSelection.value = datas
 }
 
-async function getWallpaperDatas() {
-  const wallpaperDatas = await window.wallpaperApi.getWallpaperDatas(
-    searchRootPath.value,
-    searchFromDate.value,
-    // ref数组都是Proxy类型,引用类型无法ipc传输
-    // 再用通用的一句话来说，无法传输带有方法的类
-    // 不然会报clone啥的错
-    JSON.parse(JSON.stringify(searchExtensions.value))
-  )
-  ElMessage({
-    showClose: true,
-    message: '获取 ' + wallpaperDatas.length + ' 个壁纸信息',
-    type: 'success'
-  })
-  refWallpaperDatas.value = wallpaperDatas
+function getWallpaperDatas() {
+  isSearching.value = true
+  window.wallpaperApi
+    .getWallpaperDatas(
+      searchRootPath.value,
+      searchFromDate.value,
+      // ref数组都是Proxy类型,引用类型无法ipc传输
+      // 再用通用的一句话来说，无法传输带有方法的类
+      // 不然会报clone啥的错
+      JSON.parse(JSON.stringify(searchSelected.value))
+    )
+    .then((wallpaperDatas) => {
+      isSearching.value = false
+      ElMessage({
+        showClose: true,
+        message: '获取 ' + wallpaperDatas.length + ' 个壁纸信息',
+        type: 'success'
+      })
+      refWallpaperDatas.value = wallpaperDatas
+    })
 }
-
-
 </script>
 
 <style lang="less">
