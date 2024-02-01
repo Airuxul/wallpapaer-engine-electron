@@ -1,4 +1,4 @@
-# my-electron-app
+# wallpapaer-engine-electron
 
 An Electron application with Vue and TypeScript
 
