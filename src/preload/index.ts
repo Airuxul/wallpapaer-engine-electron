@@ -8,8 +8,8 @@ const wallpaperApi = {
   setSteamLocation: (): Promise<boolean> => ipcRenderer.invoke(WallpaperEvents.SET_STEAM_LOCATION),
   getWallpaperDatas: (
     rootPath: string,
-    fromDate: Date,
-    extensions: string[]
+    fromDate: Date | null,
+    extensions: string[] | null
   ): Promise<WallpaperData[]> =>
     ipcRenderer.invoke(WallpaperEvents.GET_WALLPAPER_DATAS, rootPath, fromDate, extensions)
 }

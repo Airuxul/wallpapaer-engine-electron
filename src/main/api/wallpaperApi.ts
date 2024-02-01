@@ -1,14 +1,14 @@
 import { dialog } from 'electron'
 import { join } from 'path'
 import * as fs from 'fs'
-import { getDirPath, getFilePaths } from '../../common/utils'
+import { getDirPath, getFileName, getFilePaths } from '../../common/utils'
+import { WallpaperData } from '../../common/types'
 import {
   STEAM_WORKSHOP_DIR,
   WALLPAPER_ENGINE_APP_ID,
   WALLPAPER_CONFIG,
-  StoreKey,
-  WallpaperData
-} from '../../common/types'
+  StoreKey
+} from '../../common/const'
 import ElectronStore from 'electron-store'
 
 export function hasSetSteamLocation(): boolean {
@@ -53,14 +53,16 @@ export async function setSteamLocation() {
 export async function getWallpaperDatas(
   _event,
   rootPath: string,
-  fromDate: Date,
-  extensions: string[]
+  fromDate: Date | null,
+  extensions: string[] | null
 ): Promise<WallpaperData[]> {
   function modifyTimeFilter(_fpath: string, stats: fs.Stats): boolean {
+    if (fromDate == null) return true
     return stats.mtime > fromDate
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function extensionFilter(fpath: string, _stats: fs.Stats): boolean {
+    if (extensions == null) return true
     for (const extension of extensions) {
       if (fpath.endsWith(extension)) return true
     }
@@ -69,12 +71,24 @@ export async function getWallpaperDatas(
   const filePaths = getFilePaths(rootPath, extensionFilter, modifyTimeFilter)
   const wallpaperDatas: WallpaperData[] = []
 
-  for (const fpath of filePaths) {
-    const folderPath = getDirPath(fpath)
-    const projectConfigStr = await fs.readFileSync(join(folderPath, WALLPAPER_CONFIG), 'utf-8')
+  for (const filePath of filePaths) {
+    if (getFileName(filePath) != WALLPAPER_CONFIG) {
+      continue
+    }
+    const projectConfigStr = fs.readFileSync(filePath, 'utf-8')
     console.log(projectConfigStr)
     const projectConfig = JSON.parse(projectConfigStr)
-    wallpaperDatas.push({ path: fpath, title: projectConfig.title, preview: projectConfig.preview })
+    const projectDir = getDirPath(filePath)
+    wallpaperDatas.push({
+      path: projectDir + filePath,
+      title: projectConfig.title,
+      preview: projectDir + projectConfig.preview,
+      tags: projectConfig.tags,
+      workshopurl: projectConfig.workshopurl,
+      description: projectConfig.description,
+      type: projectConfig.type,
+      lastModifyDate: fs.statSync(filePath).mtime
+    })
   }
   return wallpaperDatas
 }

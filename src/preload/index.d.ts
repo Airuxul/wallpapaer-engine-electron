@@ -6,8 +6,8 @@ export interface WallpaperApi {
   setSteamLocation(): Promise<boolean>
   getWallpaperDatas(
     rootPath: string,
-    fromDate: Date,
-    extensions: string[]
+    fromDate: Date | null,
+    extensions: string[] | null
   ): Promise<WallpaperData[]>
 }
 declare global {

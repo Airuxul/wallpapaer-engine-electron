@@ -6,7 +6,7 @@ export function getDirPath(filePath: string) {
 }
 
 export function getFileName(filePath: string) {
-  return filePath.substring(filePath.lastIndexOf('\\') + 1, filePath.lastIndexOf('.'))
+  return filePath.substring(filePath.lastIndexOf('\\') + 1)
 }
 
 export function getFilePaths(

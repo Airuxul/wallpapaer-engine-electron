@@ -1,8 +1,7 @@
 <template>
-  <div class="common-layout">
-    <el-container>
-      <el-header>
-        <!-- 第一行 -->
+  <div style="display: flex">
+    <div style="width: 80%">
+      <div>
         <el-row :gutter="20">
           <el-col :span="5">
             <el-button
@@ -44,37 +43,38 @@
             <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
           </el-col>
         </el-row>
-      </el-header>
-      <el-main>
-        <el-table
-          ref="multipleTableRef"
-          :data="refWallpaperDatas"
-          class="dataTable"
-          :loading="isSearching"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column prop="path" label="本地路径"></el-table-column>
-          <el-table-column prop="title" label="标题"></el-table-column>
-          <el-table-column label="预览图">
-            <template #default="scope">
-              <div style="display: flex; align-items: center">
-                <el-image :preview-src-list="scope.row.preview" />
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column type="selection" prop="selected"></el-table-column>
-        </el-table>
-      </el-main>
-    </el-container>
+      </div>
+      <div>
+        <el-scrollbar :style="el_main_style" always>
+          <el-row>
+            <el-col
+              v-for="wallpaperData in refWallpaperDatas"
+              :key="wallpaperData"
+              :span="4"
+              style="padding: 5px"
+            >
+              <el-card>
+                <img :src="getElectronImgSrc(wallpaperData.preview)" class="card-image" />
+                <div style="padding: 14px">
+                  <span>{{ wallpaperData.title }}</span>
+                  <!-- <span>{{ wallpaperData.description }}</span> -->
+                </div>
+              </el-card>
+            </el-col>
+          </el-row>
+        </el-scrollbar>
+      </div>
+    </div>
+    <div style="width: 20%; background-color: black"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
-import { ElTable, ElMessage } from 'element-plus'
-import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
-
+import { ElMessage } from 'element-plus'
+import { WallpaperData } from '../../common/types'
+import { MILLISECONDS_IN_DAY, PROTOCOL_FILE_HEAD } from '../../common/const'
 // search
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
 const hasSteamRootSet = ref(false)
@@ -89,17 +89,28 @@ const searchOptions = [
 const isSearching = ref(false)
 
 // data
-const multipleTableRef = ref<InstanceType<typeof ElTable>>()
-const multipleSelection = ref<WallpaperData[]>([])
 const refWallpaperDatas = ref<WallpaperData[]>([])
+
+// main height
+const el_main_style = ref({
+  height: ''
+})
 
 // movie
 const moveTargetPath = ref('E:\\new')
 
+//#region html hook
+window.onresize = resetElMainStyle
+//#endregion
+
 //#region vue lifecycle hooks
 onMounted(async () => {
+  getWallpaperDatas()
   hasSteamRootSet.value = await window.wallpaperApi.hasSetSteamLocation()
+  resetElMainStyle()
 })
+//#endregion
+
 //#region function
 async function setSteamLocation() {
   const result = await window.wallpaperApi.setSteamLocation()
@@ -111,12 +122,12 @@ async function setSteamLocation() {
   }
 }
 
-function openDialog() {
-  console.log('nihao')
+function resetElMainStyle() {
+  el_main_style.value.height = (window.innerHeight - 120).toString() + 'px'
 }
 
-function handleSelectionChange(datas: WallpaperData[]) {
-  multipleSelection.value = datas
+function openDialog() {
+  console.log('nihao')
 }
 
 function getWallpaperDatas() {
@@ -124,11 +135,12 @@ function getWallpaperDatas() {
   window.wallpaperApi
     .getWallpaperDatas(
       searchRootPath.value,
-      searchFromDate.value,
+      null,
       // ref数组都是Proxy类型,引用类型无法ipc传输
       // 再用通用的一句话来说，无法传输带有方法的类
       // 不然会报clone啥的错
-      JSON.parse(JSON.stringify(searchSelected.value))
+      null
+      // JSON.parse(JSON.stringify(searchSelected.value))
     )
     .then((wallpaperDatas) => {
       isSearching.value = false
@@ -137,9 +149,28 @@ function getWallpaperDatas() {
         message: '获取 ' + wallpaperDatas.length + ' 个壁纸信息',
         type: 'success'
       })
+      wallpaperDatas.map((wallpaperData) => {
+        wallpaperData.type = wallpaperData.type.toLowerCase()
+      })
       refWallpaperDatas.value = wallpaperDatas
+      searchOptions.splice(0)
+      // 遍历wallpaperDatas并将其中的type不重复地存放到searchOptions
+      const newSearchOptions: string[] = []
+      wallpaperDatas.map((wallpaperData) => {
+        if (newSearchOptions.indexOf(wallpaperData.type) < 0) {
+          newSearchOptions.push(wallpaperData.type)
+        }
+      })
+      newSearchOptions.map((newSearchOption) => {
+        searchOptions.push({ label: newSearchOption, value: newSearchOption })
+      })
     })
 }
+
+function getElectronImgSrc(localPath: string) {
+  return PROTOCOL_FILE_HEAD + ':///' + localPath
+}
+//#endregion
 </script>
 
 <style lang="less">
