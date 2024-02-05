@@ -14,7 +14,7 @@
               {{ hasSteamRootSet ? 'steam.exe位置已设置' : '请设置steam.exe位置' }}
             </el-button>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="5">
             <el-input v-model="moveTargetPath" placeholder="Please Select" :readonly="true">
               <template #append>
                 <el-icon style="cursor: pointer" @click="openDialog">
@@ -45,16 +45,28 @@
         </el-row>
       </div>
       <div>
-        <el-scrollbar :style="el_main_style" always>
+        <el-scrollbar always>
           <el-row>
             <el-col
-              v-for="wallpaperData in refWallpaperDatas"
+              v-for="(wallpaperData, index) in refWallpaperDatas"
               :key="wallpaperData"
               :span="4"
-              style="padding: 5px"
+              style="padding: 16px"
             >
-              <el-card>
-                <img :src="getElectronImgSrc(wallpaperData.preview)" class="card-image" />
+              <el-card
+                :class="
+                  index >= minSelectIndex && index <= maxSelectIndex
+                    ? 'wallpaperCard-selected'
+                    : 'wallpaperCard'
+                "
+                body-class="wallpaperCard-body"
+                @click="onCardClick(index)"
+              >
+                <img
+                  :src="getElectronImgSrc(wallpaperData.preview)"
+                  class="wallpaperCard-image"
+                  fit="fill"
+                />
                 <div style="padding: 14px">
                   <span>{{ wallpaperData.title }}</span>
                   <!-- <span>{{ wallpaperData.description }}</span> -->
@@ -65,50 +77,87 @@
         </el-scrollbar>
       </div>
     </div>
-    <div style="width: 20%; background-color: black"></div>
+    <AsideDetail style="width: 20%" :wallpapaer-data="refWallpaperDatas.values[0]"></AsideDetail>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { WallpaperData } from '../../common/types'
-import { MILLISECONDS_IN_DAY, PROTOCOL_FILE_HEAD } from '../../common/const'
+import AsideDetail from './components/AsideDetail.vue'
+import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
+
+import { WallpaperData } from '@common/types'
+import { MILLISECONDS_IN_DAY, KEY_STR } from '@common/const'
+
+import { getElectronImgSrc } from './rendererUtils'
 // search
 const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
 const hasSteamRootSet = ref(false)
 const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
-const searchSelected = ref<string[]>(['.mp4'])
-const searchOptions = [
-  {
-    value: '.mp4',
-    label: '.mp4'
-  }
-]
+const searchSelected = ref<string[]>([])
+const searchOptions: { value; label }[] = []
 const isSearching = ref(false)
 
-// data
+// wallpaperData
 const refWallpaperDatas = ref<WallpaperData[]>([])
-
-// main height
-const el_main_style = ref({
-  height: ''
-})
 
 // movie
 const moveTargetPath = ref('E:\\new')
 
 //#region html hook
-window.onresize = resetElMainStyle
+let shiftKeyHold = false
+window.addEventListener('keydown', (code) => {
+  if (code.shiftKey) {
+    // console.log('shiftKeyHold:true')
+    shiftKeyHold = true
+  }
+})
+window.addEventListener('keyup', (code) => {
+  if (code.key === KEY_STR.SHIFT) {
+    // console.log('shiftKeyHold:false')
+    shiftKeyHold = false
+  }
+})
+
+// window.onresize = resetStyle
 //#endregion
 
 //#region vue lifecycle hooks
 onMounted(async () => {
   getWallpaperDatas()
   hasSteamRootSet.value = await window.wallpaperApi.hasSetSteamLocation()
-  resetElMainStyle()
 })
+//#endregion
+
+//#region ui event
+const minSelectIndex = ref(0)
+const maxSelectIndex = ref(0)
+function onCardClick(clickIndex: number) {
+  let minIndex = minSelectIndex.value
+  let maxIndex = maxSelectIndex.value
+  if (shiftKeyHold) {
+    if (minIndex > clickIndex) {
+      minIndex = clickIndex
+    } else if (clickIndex < maxIndex) {
+      const toMinDis = clickIndex - minIndex
+      const toMaxDis = maxIndex - clickIndex
+      if (toMinDis > toMaxDis) {
+        maxIndex = clickIndex
+      } else {
+        minIndex = clickIndex
+      }
+    } else {
+      maxIndex = clickIndex
+    }
+  } else {
+    minIndex = clickIndex
+    maxIndex = clickIndex
+  }
+  console.log(shiftKeyHold + '\n' + clickIndex + '\n' + minIndex + '\n' + maxIndex)
+  minSelectIndex.value = minIndex
+  maxSelectIndex.value = maxIndex
+}
 //#endregion
 
 //#region function
@@ -120,10 +169,6 @@ async function setSteamLocation() {
       type: 'error'
     })
   }
-}
-
-function resetElMainStyle() {
-  el_main_style.value.height = (window.innerHeight - 120).toString() + 'px'
 }
 
 function openDialog() {
@@ -153,6 +198,7 @@ function getWallpaperDatas() {
         wallpaperData.type = wallpaperData.type.toLowerCase()
       })
       refWallpaperDatas.value = wallpaperDatas
+      // 清空数组
       searchOptions.splice(0)
       // 遍历wallpaperDatas并将其中的type不重复地存放到searchOptions
       const newSearchOptions: string[] = []
@@ -166,13 +212,10 @@ function getWallpaperDatas() {
       })
     })
 }
-
-function getElectronImgSrc(localPath: string) {
-  return PROTOCOL_FILE_HEAD + ':///' + localPath
-}
 //#endregion
 </script>
 
 <style lang="less">
 @import './assets/css/styles.less';
+@import './assets/css//wallpaper-style.less';
 </style>

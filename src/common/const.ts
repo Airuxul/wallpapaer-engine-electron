@@ -6,3 +6,6 @@ export const PROTOCOL_FILE_HEAD = 'electron-file'
 export enum StoreKey {
   WALLPAPER_ENGINE_WS_PATH = 'wallpaperWSPath'
 }
+export const KEY_STR = {
+  SHIFT: 'Shift'
+}

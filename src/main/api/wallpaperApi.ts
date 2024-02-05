@@ -79,16 +79,18 @@ export async function getWallpaperDatas(
     console.log(projectConfigStr)
     const projectConfig = JSON.parse(projectConfigStr)
     const projectDir = getDirPath(filePath)
-    wallpaperDatas.push({
-      path: projectDir + filePath,
-      title: projectConfig.title,
-      preview: projectDir + projectConfig.preview,
-      tags: projectConfig.tags,
-      workshopurl: projectConfig.workshopurl,
-      description: projectConfig.description,
-      type: projectConfig.type,
-      lastModifyDate: fs.statSync(filePath).mtime
-    })
+    wallpaperDatas.push(
+      new WallpaperData(
+        projectDir + filePath,
+        projectConfig.title,
+        projectDir + projectConfig.preview,
+        projectConfig.tags,
+        projectConfig.workshopurl,
+        projectConfig.description,
+        projectConfig.type,
+        fs.statSync(filePath).mtime
+      )
+    )
   }
   return wallpaperDatas
 }
