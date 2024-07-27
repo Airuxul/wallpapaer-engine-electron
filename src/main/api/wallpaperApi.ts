@@ -1,54 +1,8 @@
-import { dialog } from 'electron'
-import { join } from 'path'
 import * as fs from 'fs'
 import { getDirPath, getFileName, getFilePaths } from '../../common/utils'
 import { WallpaperData } from '../../common/types'
-import {
-  STEAM_WORKSHOP_DIR,
-  WALLPAPER_ENGINE_APP_ID,
-  WALLPAPER_CONFIG,
-  StoreKey
-} from '../../common/const'
-import ElectronStore from 'electron-store'
-
-export function hasSetSteamLocation(): boolean {
-  const store = new ElectronStore()
-  if (store.has(StoreKey.WALLPAPER_ENGINE_WS_PATH)) {
-    const path = store.get(StoreKey.WALLPAPER_ENGINE_WS_PATH)?.toString()
-    if (path != null && path.length > 0 && fs.existsSync(path)) return true
-    store.delete(StoreKey.WALLPAPER_ENGINE_WS_PATH)
-    console.log('path doesnt exist', path)
-    return false
-  } else {
-    console.log('dont save path')
-  }
-  return false
-}
-
-export async function setSteamLocation() {
-  const result = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [
-      {
-        name: 'Program',
-        extensions: ['exe']
-      }
-    ]
-  })
-  if (result.canceled) return false
-  const wallpaperWSPath = join(
-    getDirPath(result.filePaths[0]),
-    STEAM_WORKSHOP_DIR,
-    WALLPAPER_ENGINE_APP_ID.toString()
-  )
-  if (fs.existsSync(wallpaperWSPath)) {
-    const store = new ElectronStore()
-    store.set(StoreKey.WALLPAPER_ENGINE_WS_PATH, wallpaperWSPath)
-    return true
-  } else {
-    return false
-  }
-}
+import { WALLPAPER_CONFIG } from '../../common/const'
+import logger from '../../common/logger'
 
 export async function getWallpaperDatas(
   _event,
@@ -76,7 +30,7 @@ export async function getWallpaperDatas(
       continue
     }
     const projectConfigStr = fs.readFileSync(filePath, 'utf-8')
-    console.log(projectConfigStr)
+    logger.debug(projectConfigStr)
     const projectConfig = JSON.parse(projectConfigStr)
     const projectDir = getDirPath(filePath)
     wallpaperDatas.push(
@@ -93,4 +47,13 @@ export async function getWallpaperDatas(
     )
   }
   return wallpaperDatas
+}
+
+export function moveWallpapers(_event, wallpaperDatas: WallpaperData[]) {
+  logger.debug("[moveWallpapers]")
+  wallpaperDatas.forEach(wallpaperData => {
+    logger.debug(wallpaperData)
+    const oriPath = wallpaperData.path
+    
+  });
 }

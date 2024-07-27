@@ -1,20 +1,20 @@
 import { app, shell, BrowserWindow, protocol, net } from 'electron'
-import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import { join } from 'path'
 import { ipcRegister } from './ipcRegister'
 import { PROTOCOL_FILE_HEAD } from '../common/const'
+import icon from '../../resources/icon.png?asset'
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 670,
+    width: 1920,
+    height: 1080,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: true
     }
   })
 
@@ -32,6 +32,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  return mainWindow
 }
 
 app.whenReady().then(() => {
@@ -43,7 +44,7 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-
+  // 注册ipc
   ipcRegister()
 
   createWindow()

@@ -1,15 +1,4 @@
-interface IWallpaperData {
-  path: string
-  title: string
-  preview: string
-  tags: string[]
-  workshopUrl: string
-  description: string
-  type: string
-  lastModifyDate: Date
-}
-
-export class WallpaperData implements IWallpaperData {
+export class WallpaperData {
   path: string
   title: string
   preview: string

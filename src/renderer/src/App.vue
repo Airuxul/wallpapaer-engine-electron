@@ -42,6 +42,9 @@
           <el-col :span="3">
             <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
           </el-col>
+          <el-col :span="3">
+            <el-button @click="moveWallpaperDatas">移动壁纸</el-button>
+          </el-col>
         </el-row>
       </div>
       <div>
@@ -86,6 +89,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import AsideDetail from './components/AsideDetail.vue'
 import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
+import { toRaw } from 'vue'
 
 import { WallpaperData } from '@common/types'
 import { MILLISECONDS_IN_DAY, KEY_STR } from '@common/const'
@@ -109,24 +113,20 @@ const moveTargetPath = ref('E:\\new')
 let shiftKeyHold = false
 window.addEventListener('keydown', (code) => {
   if (code.shiftKey) {
-    // console.log('shiftKeyHold:true')
     shiftKeyHold = true
   }
 })
 window.addEventListener('keyup', (code) => {
   if (code.key === KEY_STR.SHIFT) {
-    // console.log('shiftKeyHold:false')
     shiftKeyHold = false
   }
 })
-
-// window.onresize = resetStyle
 //#endregion
 
 //#region vue lifecycle hooks
 onMounted(async () => {
   getWallpaperDatas()
-  hasSteamRootSet.value = await window.wallpaperApi.hasSetSteamLocation()
+  hasSteamRootSet.value = await window.steamApi.hasSetSteamLocation()
 })
 //#endregion
 
@@ -154,7 +154,6 @@ function onCardClick(clickIndex: number) {
     minIndex = clickIndex
     maxIndex = clickIndex
   }
-  console.log(shiftKeyHold + '\n' + clickIndex + '\n' + minIndex + '\n' + maxIndex)
   minSelectIndex.value = minIndex
   maxSelectIndex.value = maxIndex
 }
@@ -162,7 +161,7 @@ function onCardClick(clickIndex: number) {
 
 //#region function
 async function setSteamLocation() {
-  const result = await window.wallpaperApi.setSteamLocation()
+  const result = await window.steamApi.setSteamLocation()
   if (!result) {
     ElMessage({
       message: '路径设置失败，检查是否设置steam.exe以及WallpaperEngine是否安装',
@@ -172,7 +171,7 @@ async function setSteamLocation() {
 }
 
 function openDialog() {
-  console.log('nihao')
+  // const result = await window.wallpaperApi
 }
 
 function getWallpaperDatas() {
@@ -211,6 +210,10 @@ function getWallpaperDatas() {
         searchOptions.push({ label: newSearchOption, value: newSearchOption })
       })
     })
+}
+
+function moveWallpaperDatas() {
+  window.wallpaperApi.moveWallpaper(toRaw(refWallpaperDatas.value))
 }
 //#endregion
 </script>
