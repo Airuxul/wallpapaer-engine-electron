@@ -5,7 +5,8 @@ export enum WallpaperEvents {
   HAS_SET_STEAM_LOCATION = WALLPAPER_EVENT_PRE + 'hasSetSteamLocation',
   GET_MOVE_PATH = WALLPAPER_EVENT_PRE + 'getMovePath',
   SET_MOVE_PATH = WALLPAPER_EVENT_PRE + 'setMovePath',
-  GET_WALLPAPER_DATAS = WALLPAPER_EVENT_PRE + 'getWallpaperDatas'
+  GET_WALLPAPER_DATAS = WALLPAPER_EVENT_PRE + 'getWallpaperDatas',
+  MOVE_WALLPAPER_FILES = WALLPAPER_EVENT_PRE + 'moveWallpaperFiles'
 }
 
 export const CONST_EVENT_PRE = 'common:'

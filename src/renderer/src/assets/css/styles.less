@@ -46,3 +46,43 @@ a:hover {
 .el-row {
   margin-bottom: 20px;
 }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card.is-selected {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid #409eff; /* 设置选中时的边框颜色 */
+}
+
+.card-image {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 10px;
+}
+
+.card-content {
+  text-align: center;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.card-path {
+  font-size: 14px;
+  color: #666;
+  word-break: break-all;
+  white-space: pre-wrap;
+  text-align: left;
+}

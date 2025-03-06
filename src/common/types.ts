@@ -9,6 +9,11 @@ export interface WallpaperData {
   preview: string
 }
 
+// 用于前端可选
+export interface SelectableWallpaperData extends WallpaperData {
+  selected: boolean
+}
+
 export enum StoreKey {
   WALLPAPER_ENGINE_WS_PATH = 'wallpaperWSPath',
   MOVE_PATH = 'moveFolderPath'

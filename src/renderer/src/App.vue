@@ -44,29 +44,26 @@
             <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
           </el-col>
           <el-col :span="2">
-            <el-button :loading="isMoving" @click="moveWallpaper">复制</el-button>
+            <el-button :loading="isMoving" @click="moveWallpaperFiles">Move!</el-button>
           </el-col>
         </el-row>
       </el-header>
       <el-main>
-        <el-table
-          ref="multipleTableRef"
-          :data="refWallpaperDatas"
-          class="dataTable"
-          :loading="isSearching"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column prop="path" label="本地路径"></el-table-column>
-          <el-table-column prop="title" label="标题"></el-table-column>
-          <el-table-column label="预览图">
-            <template #default="scope">
-              <div style="display: flex; align-items: center">
-                <el-image style="width: 200px; height: 200px" :src="scope.row.preview" />
+        <el-row :gutter="20">
+          <el-col v-for="(item, index) in refWallpaperDatas" :key="index" :span="6">
+            <el-card
+              :class="['card', { 'is-selected': item.selected }]"
+              @click="toggleSelection(item)"
+            >
+              <el-image class="card-image" :src="item.preview" fit="cover" />
+              <div class="card-content">
+                <el-text class="card-title">{{ item.title }}</el-text>
+                <el-divider border-style="dotted" />
+                <el-text class="card-path"> 本地路径:<br />{{ item.path }} </el-text>
               </div>
-            </template>
-          </el-table-column>
-          <el-table-column type="selection" prop="selected"></el-table-column>
-        </el-table>
+            </el-card>
+          </el-col>
+        </el-row>
       </el-main>
     </el-container>
   </div>
@@ -75,8 +72,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { FolderOpened, CircleCheckFilled, WarningFilled } from '@element-plus/icons-vue'
-import { ElTable, ElMessage } from 'element-plus'
-import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
+import { ElMessage } from 'element-plus'
+import { MILLISECONDS_IN_DAY, SelectableWallpaperData, WallpaperData } from '../../common/types'
 
 // search
 const hasSteamRootSet = ref(false)
@@ -92,9 +89,7 @@ const isSearching = ref(false)
 const isMoving = ref(false)
 
 // data
-const multipleTableRef = ref<InstanceType<typeof ElTable>>()
-const multipleSelection = ref<WallpaperData[]>([])
-const refWallpaperDatas = ref<WallpaperData[]>([])
+const refWallpaperDatas = ref<SelectableWallpaperData[]>([])
 
 // move
 const moveTargetPath = ref('E:\\')
@@ -133,10 +128,6 @@ async function openDialog() {
   }
 }
 
-function handleSelectionChange(datas: WallpaperData[]) {
-  multipleSelection.value = datas
-}
-
 function getWallpaperDatas() {
   isSearching.value = true
   window.wallpaperApi
@@ -158,10 +149,19 @@ function getWallpaperDatas() {
     })
 }
 
-function moveWallpaper() {
-  if (multipleSelection.value.length === 0) {
-    return
+function toggleSelection(item) {
+  item.selected = !item.selected
+}
+
+function moveWallpaperFiles() {
+  const needMoveWallpaperDatas: WallpaperData[] = []
+  for (const item of refWallpaperDatas.value) {
+    if (item.selected) {
+      needMoveWallpaperDatas.push(JSON.parse(JSON.stringify(item)))
+      item.selected = false
+    }
   }
+  window.wallpaperApi.moveWallpaperFiles(needMoveWallpaperDatas)
 }
 //#endregion
 </script>

@@ -10,7 +10,9 @@ const wallpaperApi = {
   setMovePath: (movePath: string): Promise<boolean> =>
     ipcRenderer.invoke(WallpaperEvents.SET_MOVE_PATH, movePath),
   getWallpaperDatas: (fromDate: Date, extensions: string[]): Promise<WallpaperData[]> =>
-    ipcRenderer.invoke(WallpaperEvents.GET_WALLPAPER_DATAS, fromDate, extensions)
+    ipcRenderer.invoke(WallpaperEvents.GET_WALLPAPER_DATAS, fromDate, extensions),
+  moveWallpaperFiles: (wallpaperDatas: WallpaperData[]): Promise<void> =>
+    ipcRenderer.invoke(WallpaperEvents.MOVE_WALLPAPER_FILES, wallpaperDatas)
 }
 
 const commonApi = {

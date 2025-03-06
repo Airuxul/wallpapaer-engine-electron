@@ -4,6 +4,7 @@ export interface WallpaperApi {
   getMovePath(): Promise<string>
   setMovePath(movePath: string): Promise<boolean>
   getWallpaperDatas(fromDate: Date, extensions: string[]): Promise<WallpaperData[]>
+  moveWallpaperFiles(wallpaperDatas: WallpaperData[])
 }
 
 export interface CommonApi {

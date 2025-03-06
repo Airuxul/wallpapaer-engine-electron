@@ -5,7 +5,8 @@ import {
   setSteamLocation,
   getMovePath,
   setMovePath,
-  getWallpaperDatas
+  getWallpaperDatas,
+  moveWallpaperFiles
 } from '../main/api/wallpaperApi'
 import { getFolderPath } from '../main/api/commonApi'
 export function ipcRegister() {
@@ -19,6 +20,7 @@ export function ipcRegister() {
 
   // 获取壁纸数据
   ipcMain.handle(WallpaperEvents.GET_WALLPAPER_DATAS, getWallpaperDatas)
+  ipcMain.handle(WallpaperEvents.MOVE_WALLPAPER_FILES, moveWallpaperFiles)
 
   // 通用函数
   ipcMain.handle(CommonEvents.GET_FOLDER_PATH, getFolderPath)

@@ -1,5 +1,5 @@
 import { dialog } from 'electron'
-import { join } from 'path'
+import { join, extname } from 'path'
 import * as fs from 'fs'
 import { getDirPath, getFilePaths } from '../../common/utils'
 import {
@@ -89,6 +89,8 @@ export async function getWallpaperDatas(
     const folderPath = getDirPath(fpath)
     const projectConfigStr = await fs.readFileSync(join(folderPath, WALLPAPER_CONFIG), 'utf-8')
     const projectConfig = JSON.parse(projectConfigStr)
+    const fileName = projectConfig.file
+    if (!fpath.endsWith(fileName)) continue
     const previewPath = 'local-image:///' + join(folderPath, projectConfig.preview)
     wallpaperDatas.push({
       path: fpath,
@@ -97,4 +99,26 @@ export async function getWallpaperDatas(
     })
   }
   return wallpaperDatas
+}
+
+export async function moveWallpaperFiles(_event, wallpaperDatas: WallpaperData[]) {
+  const movePath = getMovePath()
+  if (movePath.length == 0) return
+  // 将 filePaths 中的文件复制到 movePath 下
+  for (const wallpaperData of wallpaperDatas) {
+    const fpath = wallpaperData.path
+    try {
+      const newFileName = wallpaperData.title
+      // 获取文件后缀名
+      const fileExtension = extname(fpath)
+      // 组合newFileName 和 fileExtension得到新文件名
+      const fileName = `${newFileName}${fileExtension}`
+      // 构建目标文件路径
+      const destPath = join(movePath, fileName)
+      await fs.copyFileSync(fpath, destPath)
+      console.log(`copy file success: ${fpath} -> ${destPath}`)
+    } catch (err) {
+      console.error(`copy file failed: ${fpath}`, err)
+    }
+  }
 }
