@@ -1,8 +1,8 @@
 <template>
   <div class="common-layout">
     <el-container>
+      <!-- 第一行按钮 -->
       <el-header>
-        <!-- 第一行 -->
         <el-row :gutter="20">
           <el-col :span="5">
             <el-button
@@ -44,10 +44,11 @@
             <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
           </el-col>
           <el-col :span="2">
-            <el-button :loading="isMoving" @click="moveWallpaperFiles">Move!</el-button>
+            <el-button :loading="isMoving" @click="moveWallpaperFiles">开移!</el-button>
           </el-col>
         </el-row>
       </el-header>
+      <!-- 壁纸显示 -->
       <el-main>
         <el-row :gutter="20">
           <el-col v-for="(item, index) in refWallpaperDatas" :key="index" :span="6">
@@ -154,6 +155,7 @@ function toggleSelection(item) {
 }
 
 function moveWallpaperFiles() {
+  isMoving.value = true
   const needMoveWallpaperDatas: WallpaperData[] = []
   for (const item of refWallpaperDatas.value) {
     if (item.selected) {
@@ -161,7 +163,9 @@ function moveWallpaperFiles() {
       item.selected = false
     }
   }
-  window.wallpaperApi.moveWallpaperFiles(needMoveWallpaperDatas)
+  window.wallpaperApi.moveWallpaperFiles(needMoveWallpaperDatas).then(() => {
+    isMoving.value = false
+  })
 }
 //#endregion
 </script>

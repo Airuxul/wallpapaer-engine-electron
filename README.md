@@ -1,6 +1,11 @@
 # wallpapaer-engine-electron
 
-An Electron application with Vue and TypeScript
+electron小Demo，可以复制WallpapaerEnine壁纸订阅文件到指定路径
+* 支持显示壁纸相关信息
+* 支持筛选在设置时间后的订阅文件
+* 支持筛选符合后缀的订阅文件
+
+![alt text](img/image.png)
 
 ## Recommended IDE Setup
 
