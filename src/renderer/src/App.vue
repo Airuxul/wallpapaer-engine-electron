@@ -24,10 +24,10 @@
               </template>
             </el-input>
           </el-col>
-          <el-col :span="5">
+          <el-col :span="4">
             <el-date-picker v-model="searchFromDate" type="date" :clearable="false" />
           </el-col>
-          <el-col :span="5">
+          <el-col :span="4">
             <el-select
               v-model="searchSelected"
               multiple
@@ -42,6 +42,9 @@
           </el-col>
           <el-col :span="3">
             <el-button :loading="isSearching" @click="getWallpaperDatas">获取壁纸信息</el-button>
+          </el-col>
+          <el-col :span="2">
+            <el-button :loading="isMoving" @click="moveWallpaper">复制</el-button>
           </el-col>
         </el-row>
       </el-header>
@@ -58,7 +61,7 @@
           <el-table-column label="预览图">
             <template #default="scope">
               <div style="display: flex; align-items: center">
-                <el-image :preview-src-list="scope.row.preview" />
+                <el-image style="width: 200px; height: 200px" :src="scope.row.preview" />
               </div>
             </template>
           </el-table-column>
@@ -76,7 +79,6 @@ import { ElTable, ElMessage } from 'element-plus'
 import { MILLISECONDS_IN_DAY, WallpaperData } from '../../common/types'
 
 // search
-const searchRootPath = ref('E:\\Steam\\steamapps\\workshop\\content\\431960')
 const hasSteamRootSet = ref(false)
 const searchFromDate = ref(new Date(Date.now() - MILLISECONDS_IN_DAY))
 const searchSelected = ref<string[]>(['.mp4'])
@@ -87,19 +89,24 @@ const searchOptions = [
   }
 ]
 const isSearching = ref(false)
+const isMoving = ref(false)
 
 // data
 const multipleTableRef = ref<InstanceType<typeof ElTable>>()
 const multipleSelection = ref<WallpaperData[]>([])
 const refWallpaperDatas = ref<WallpaperData[]>([])
 
-// movie
-const moveTargetPath = ref('E:\\new')
+// move
+const moveTargetPath = ref('E:\\')
 
 //#region vue lifecycle hooks
 onMounted(async () => {
   hasSteamRootSet.value = await window.wallpaperApi.hasSetSteamLocation()
+  moveTargetPath.value = await window.wallpaperApi.getMovePath()
+  getWallpaperDatas()
 })
+//#endregion
+
 //#region function
 async function setSteamLocation() {
   const result = await window.wallpaperApi.setSteamLocation()
@@ -111,8 +118,19 @@ async function setSteamLocation() {
   }
 }
 
-function openDialog() {
-  console.log('nihao')
+async function openDialog() {
+  const folderPath = await window.commonApi.getFolderPath()
+  const setResult = await window.wallpaperApi.setMovePath(folderPath)
+  if (setResult) {
+    moveTargetPath.value = folderPath
+  } else {
+    // 如果设置失败则弹窗提示一下
+    ElMessage({
+      showClose: true,
+      message: '获取移动路径失败',
+      type: 'error'
+    })
+  }
 }
 
 function handleSelectionChange(datas: WallpaperData[]) {
@@ -123,7 +141,6 @@ function getWallpaperDatas() {
   isSearching.value = true
   window.wallpaperApi
     .getWallpaperDatas(
-      searchRootPath.value,
       searchFromDate.value,
       // ref数组都是Proxy类型,引用类型无法ipc传输
       // 再用通用的一句话来说，无法传输带有方法的类
@@ -140,6 +157,13 @@ function getWallpaperDatas() {
       refWallpaperDatas.value = wallpaperDatas
     })
 }
+
+function moveWallpaper() {
+  if (multipleSelection.value.length === 0) {
+    return
+  }
+}
+//#endregion
 </script>
 
 <style lang="less">

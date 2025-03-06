@@ -11,21 +11,23 @@ import {
 } from '../../common/types'
 import ElectronStore from 'electron-store'
 
-export function hasSetSteamLocation(): boolean {
+function getStorePath(pathKey: string): string {
   const store = new ElectronStore()
-  if (store.has(StoreKey.WALLPAPER_ENGINE_WS_PATH)) {
-    const path = store.get(StoreKey.WALLPAPER_ENGINE_WS_PATH)?.toString()
-    if (path != null && path.length > 0 && fs.existsSync(path)) return true
-    store.delete(StoreKey.WALLPAPER_ENGINE_WS_PATH)
-    console.log('path doesnt exist', path)
-    return false
-  } else {
-    console.log('dont save path')
+  if (store.has(pathKey)) {
+    const path = store.get(pathKey)?.toString()
+    if (path != null && path.length > 0 && fs.existsSync(path)) return path
+    store.delete(pathKey)
+    return ''
   }
-  return false
+  return ''
 }
 
-export async function setSteamLocation() {
+export function hasSetSteamLocation(): boolean {
+  const path = getStorePath(StoreKey.WALLPAPER_ENGINE_WS_PATH)
+  return path != null && path.length > 0 && fs.existsSync(path)
+}
+
+export async function setSteamLocation(): Promise<boolean> {
   const result = await dialog.showOpenDialog({
     properties: ['openFile'],
     filters: [
@@ -50,9 +52,22 @@ export async function setSteamLocation() {
   }
 }
 
+// 暴露出去的接口要传参数需要第一个参数为_event
+export function setMovePath(_event, path: string): boolean {
+  if (path == null || path.length == 0 || !fs.existsSync(path)) {
+    return false
+  }
+  const store = new ElectronStore()
+  store.set(StoreKey.MOVE_PATH, path)
+  return true
+}
+
+export function getMovePath(): string {
+  return getStorePath(StoreKey.MOVE_PATH)
+}
+
 export async function getWallpaperDatas(
   _event,
-  rootPath: string,
   fromDate: Date,
   extensions: string[]
 ): Promise<WallpaperData[]> {
@@ -66,15 +81,20 @@ export async function getWallpaperDatas(
     }
     return false
   }
+  const rootPath = getStorePath(StoreKey.WALLPAPER_ENGINE_WS_PATH)
   const filePaths = getFilePaths(rootPath, extensionFilter, modifyTimeFilter)
   const wallpaperDatas: WallpaperData[] = []
 
   for (const fpath of filePaths) {
     const folderPath = getDirPath(fpath)
     const projectConfigStr = await fs.readFileSync(join(folderPath, WALLPAPER_CONFIG), 'utf-8')
-    console.log(projectConfigStr)
     const projectConfig = JSON.parse(projectConfigStr)
-    wallpaperDatas.push({ path: fpath, title: projectConfig.title, preview: projectConfig.preview })
+    const previewPath = 'local-image:///' + join(folderPath, projectConfig.preview)
+    wallpaperDatas.push({
+      path: fpath,
+      title: projectConfig.title,
+      preview: previewPath
+    })
   }
   return wallpaperDatas
 }

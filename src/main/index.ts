@@ -1,8 +1,11 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { ipcRegister } from './ipcRegister'
+
+// 这个协议绕过CSP安全策略用来加载本地图片
+protocol.registerSchemesAsPrivileged([{ scheme: 'local-image', privileges: { bypassCSP: true } }])
 
 function createWindow(): void {
   // Create the browser window.
@@ -47,6 +50,11 @@ app.whenReady().then(() => {
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
+  })
+
+  // 拦截file加载协议并通过local-image协议加载
+  protocol.handle('local-image', (request) => {
+    return net.fetch('file://' + request.url.slice('local-image://'.length))
   })
 
   ipcRegister()
